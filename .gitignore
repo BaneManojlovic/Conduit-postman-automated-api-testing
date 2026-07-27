@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Postman / Newman test reports
 reports/
+
+# Remove .DS_Store
+.DS_Store
