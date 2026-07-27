@@ -20,6 +20,8 @@
               "pm.test(\"Response have user token\", function () {",
               "    const responseData = pm.response.json();",
               "    pm.expect(responseData.user.token).to.not.be.undefined;",
+              "    // save token",
+              "    pm.environment.set(\"user_token\", responseData.user.token);",
               "});",
               ""
             ],
@@ -57,6 +59,91 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "Get Current User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Provera uspešnog status koda",
+              "pm.test(\"Status code: 200 - User data valid\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Provera strukture i ispravnosti podataka u odgovoru",
+              "pm.test(\"Response contains valid user data\", function () {",
+              "    const responseData = pm.response.json();",
+              "    ",
+              "    // Proveravamo da li struktura sadrži 'user' objekat",
+              "    pm.expect(responseData).to.have.property('user');",
+              "    ",
+              "    // Validacija konkretnih vrednosti koje ste naveli",
+              "    pm.expect(responseData.user.email).to.equal(\"banetest@gmail.com\");",
+              "    pm.expect(responseData.user.username).to.equal(\"BaneTest\");",
+              "    pm.expect(responseData.user.id).to.equal(59649);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/user",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "user"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{user_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
     }
   ]
 }
