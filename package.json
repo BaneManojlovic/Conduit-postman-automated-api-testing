@@ -1,0 +1,20 @@
+{
+  "name": "conduit-api-tests",
+  "version": "1.0.0",
+  "description": "Automated API tests for Conduit using Postman and Newman",
+  "main": "index.js",
+  "scripts": {
+    "test:local": "newman run tests/collections/*.json",
+    "test:report": "newman run tests/collections/*.json -r cli,htmlextra --reporter-htmlextra-export ./reports/report.html"
+  },
+  "keywords": [
+    "postman",
+    "newman",
+    "qa",
+    "automation"
+  ],
+  "dependencies": {
+    "newman": "^6.2.2",
+    "newman-reporter-htmlextra": "^1.22.5"
+  }
+}
