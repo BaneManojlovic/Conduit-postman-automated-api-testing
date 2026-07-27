@@ -110,6 +110,57 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "Get User - Invalid Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 401 - Access denied\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Response message text is correct\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.message).to.equal(\"missing authorization credentials\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{invalid_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/user",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "user"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "auth": {
