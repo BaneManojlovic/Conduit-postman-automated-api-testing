@@ -2,6 +2,7 @@
   "info": {
     "_postman_id": "5868956b-ee3a-489e-87a0-7d8ee2525e9a",
     "name": "Conduit API Tests",
+    "description": "# Conduit API Tests\n\nThis collection contains automated tests for the **Conduit API** — a real-world blogging platform API. The tests cover user authentication and identity endpoints, validating both happy-path and negative/error scenarios.\n\n## Base URL\n\n`https://conduit-api.bondaracademy.com/api`\n\n## Authentication\n\nCollection-level Bearer token authentication is configured using the `{{user_token}}` environment variable. This token is automatically captured and stored by the **User Login** request and reused by subsequent authenticated requests.\n\n## Requests Overview\n\n| # | Method | Name | Endpoint | Purpose |\n| --- | --- | --- | --- | --- |\n| 1 | POST | User Login | `/users/login` | Authenticate a valid user and capture the token |\n| 2 | POST | User Login - invalid email input data | `/users/login` | Validate error handling for a malformed email |\n| 3 | POST | User Login - invalid password input data | `/users/login` | Validate error handling for an incorrect password |\n| 4 | GET | Get Current User | `/user` | Retrieve the authenticated user's profile |\n| 5 | GET | Get User - Invalid Token | `/user` | Validate error handling for an invalid Bearer token |\n\n## Test Coverage Summary\n\n- **Status code validation** — every request asserts the expected HTTP status code.\n    \n- **Response body validation** — response payloads are inspected for correct structure and field values.\n    \n- **Token lifecycle** — the login request extracts and stores `user_token` in the active environment for downstream requests.\n    \n- **Negative testing** — three requests specifically target error conditions (invalid email, invalid password, invalid token) to confirm the API returns appropriate error responses.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "3587464"
   },
@@ -56,7 +57,126 @@
             "users",
             "login"
           ]
+        },
+        "description": "## User Login\n\nAuthenticates a registered user against the Conduit API using their email and password credentials.\n\n**Endpoint:** `POST /api/users/login`\n\n### Request Body\n\n```json\n{\n  \"user\": {\n    \"email\": \"banetest@gmail.com\",\n    \"password\": \"Test123!\"\n  }\n}\n```\n\n### What is tested\n\n| Test | Description |\n|------|-------------|\n| Status code: 200 - Login Success | Asserts the API returns HTTP 200, confirming a successful login. |\n| Response have user token | Asserts that `user.token` is present and not undefined in the response body. The token is then saved to the `user_token` environment variable for use by subsequent authenticated requests. |\n\n### Notes\n- This request must run **before** any authenticated requests (e.g. Get Current User) so that `{{user_token}}` is populated in the environment."
+      },
+      "response": []
+    },
+    {
+      "name": "User Login - invalid email input data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 403 - Login Error\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Response body contains error message\", function () {",
+              "    pm.response.to.have.jsonBody({",
+              "        \"errors\": {",
+              "        \"email or password\": [",
+              "            \"is invalid\"",
+              "        ]",
+              "    }",
+              "    })",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
         }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"x\",\n        \"password\": \"Test123!\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/users/login",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "users",
+            "login"
+          ]
+        },
+        "description": "## User Login - Invalid Email Input Data\n\nVerifies that the Conduit API correctly rejects a login attempt when the email address is malformed or does not exist.\n\n**Endpoint:** `POST /api/users/login`\n\n### Request Body\n\n```json\n{\n  \"user\": {\n    \"email\": \"x\",\n    \"password\": \"Test123!\"\n  }\n}\n```\n\n### What is tested\n\n| Test | Description |\n|------|-------------|\n| Status code: 403 - Login Error | Asserts the API returns HTTP 403, indicating the credentials are rejected. |\n| Response body contains error message | Asserts the response body contains `{ \"errors\": { \"email or password\": [\"is invalid\"] } }`, confirming the API surfaces a meaningful validation error. |\n\n### Notes\n- This is a **negative test**. The email value `\"x\"` is intentionally invalid to trigger an error response.\n- The same error structure is expected whether the email or password is wrong, preventing user enumeration."
+      },
+      "response": []
+    },
+    {
+      "name": "User Login - invalid password input data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 403 - Login Error\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Response body contains error message\", function () {",
+              "    pm.response.to.have.jsonBody({",
+              "        \"errors\": {",
+              "        \"email or password\": [",
+              "            \"is invalid\"",
+              "        ]",
+              "    }",
+              "    })",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"banetest@gmail.com\",\n        \"password\": \"x\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/users/login",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "users",
+            "login"
+          ]
+        },
+        "description": "## User Login - Invalid Password Input Data\n\nVerifies that the Conduit API correctly rejects a login attempt when the password is incorrect.\n\n**Endpoint:** `POST /api/users/login`\n\n### Request Body\n\n```json\n{\n  \"user\": {\n    \"email\": \"banetest@gmail.com\",\n    \"password\": \"x\"\n  }\n}\n```\n\n### What is tested\n\n| Test | Description |\n|------|-------------|\n| Status code: 403 - Login Error | Asserts the API returns HTTP 403, indicating the credentials are rejected. |\n| Response body contains error message | Asserts the response body contains `{ \"errors\": { \"email or password\": [\"is invalid\"] } }`, confirming the API returns a consistent error regardless of which field is wrong. |\n\n### Notes\n- This is a **negative test**. The password value `\"x\"` is intentionally incorrect.\n- The API intentionally uses a generic `\"email or password\": [\"is invalid\"]` error message for both invalid email and invalid password cases, which is a security best practice to prevent user enumeration."
       },
       "response": []
     },
@@ -107,7 +227,8 @@
             "api",
             "user"
           ]
-        }
+        },
+        "description": "## Get Current User\n\nRetrieves the profile of the currently authenticated user. This request uses the Bearer token stored in `{{user_token}}`, which is set by the **User Login** request.\n\n**Endpoint:** `GET /api/user`\n\n**Authentication:** Bearer token via `{{user_token}}`\n\n### What is tested\n\n| Test | Description |\n| --- | --- |\n| Status code: 200 - User data valid | Asserts the API returns HTTP 200, confirming the token is valid and the user data was retrieved successfully. |\n| Response contains valid user data | Asserts the response body contains a `user` object and validates specific field values: `email` equals `\"banetest@gmail.com\"`, `username` equals `\"BaneTest\"`, and `id` equals `59649`. |\n\n### Notes\n\n- This request **depends on User Login** having run first to populate `{{user_token}}`.\n    \n- If the token is missing or expired, the API will return a 401 error instead."
       },
       "response": []
     },
@@ -158,7 +279,8 @@
             "api",
             "user"
           ]
-        }
+        },
+        "description": "## Get User - Invalid Token\n\nVerifies that the Conduit API correctly rejects a request to the user profile endpoint when an invalid Bearer token is provided.\n\n**Endpoint:** `GET /api/user`\n\n**Authentication:** Bearer token via `{{invalid_auth_token}}` (intentionally invalid)\n\n### What is tested\n\n| Test | Description |\n| --- | --- |\n| Status code: 401 - Access denied | Asserts the API returns HTTP 401, confirming that the invalid token is rejected and access is denied. |\n| Response message text is correct | Asserts that `response.message` equals `\"missing authorization credentials\"`, confirming the API returns a clear and consistent error message for unauthorized access. |\n\n### Notes\n\n- This is a **negative test** using the `{{invalid_auth_token}}` variable, which holds a deliberately invalid token value.\n    \n- This request overrides the collection-level Bearer token with its own auth configuration."
       },
       "response": []
     }
