@@ -1,0 +1,253 @@
+{
+  "info": {
+    "_postman_id": "fa802417-5b50-4738-ad00-4b9f9869c443",
+    "name": "Conduit Profiles API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "3587464"
+  },
+  "item": [
+    {
+      "name": "User Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 200 - Login Success\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response have user token\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.token).to.not.be.undefined;",
+              "    // save token",
+              "    pm.environment.set(\"user_token\", responseData.user.token);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"banetest@gmail.com\",\n        \"password\": \"Test123!\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/users/login",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "users",
+            "login"
+          ]
+        },
+        "description": "## User Login\n\nAuthenticates a registered user against the Conduit API using their email and password credentials.\n\n**Endpoint:** `POST /api/users/login`\n\n### Request Body\n\n```json\n{\n  \"user\": {\n    \"email\": \"banetest@gmail.com\",\n    \"password\": \"Test123!\"\n  }\n}\n```\n\n### What is tested\n\n| Test | Description |\n|------|-------------|\n| Status code: 200 - Login Success | Asserts the API returns HTTP 200, confirming a successful login. |\n| Response have user token | Asserts that `user.token` is present and not undefined in the response body. The token is then saved to the `user_token` environment variable for use by subsequent authenticated requests. |\n\n### Notes\n- This request must run **before** any authenticated requests (e.g. Get Current User) so that `{{user_token}}` is populated in the environment."
+      },
+      "response": []
+    },
+    {
+      "name": "Get User - Invalid Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code: 401 - Access denied\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Response message text is correct\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.message).to.eql(\"missing authorization credentials\");",
+              "});",
+              "",
+              "pm.test(\"Response time is acceptable\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Content-Type header is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "pm.test(\"Response body has message property\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"message\");",
+              "});",
+              "",
+              "pm.test(\"Response does not expose user data\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.not.have.property(\"user\");",
+              "});",
+              "",
+              "pm.test(\"Error message is a non-empty string\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.message).to.be.a(\"string\").and.to.have.length.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{invalid_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/user",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "user"
+          ]
+        },
+        "description": "## Get User - Invalid Token\n\nVerifies that the Conduit API correctly rejects a request to the user profile endpoint when an invalid Bearer token is provided.\n\n**Endpoint:** `GET /api/user`\n\n**Authentication:** Bearer token via `{{invalid_auth_token}}` (intentionally invalid)\n\n### What is tested\n\n| Test | Description |\n| --- | --- |\n| Status code: 401 - Access denied | Asserts the API returns HTTP 401, confirming that the invalid token is rejected and access is denied. |\n| Response message text is correct | Asserts that `response.message` equals `\"missing authorization credentials\"`, confirming the API returns a clear and consistent error message for unauthorized access. |\n\n### Notes\n\n- This is a **negative test** using the `{{invalid_auth_token}}` variable, which holds a deliberately invalid token value.\n    \n- This request overrides the collection-level Bearer token with its own auth configuration."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Current User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Provera uspešnog status koda",
+              "pm.test(\"Status code: 200 - User data valid\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Provera strukture i ispravnosti podataka u odgovoru",
+              "pm.test(\"Response contains valid user data\", function () {",
+              "    const responseData = pm.response.json();",
+              "    ",
+              "    // Proveravamo da li struktura sadrži 'user' objekat",
+              "    pm.expect(responseData).to.have.property('user');",
+              "    ",
+              "    // Validacija konkretnih vrednosti koje ste naveli",
+              "    pm.expect(responseData.user.email).to.equal(\"banetest@gmail.com\");",
+              "    pm.expect(responseData.user.username).to.equal(\"BaneTest\");",
+              "    pm.expect(responseData.user.id).to.equal(59649);",
+              "});",
+              "",
+              "pm.test(\"Response time is acceptable\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Content-Type header is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "pm.test(\"User object contains all expected fields\", function () {",
+              "    const responseData = pm.response.json();",
+              "    console.log(responseData.user)",
+              "    pm.expect(responseData.user).to.have.all.keys(\"id\", \"email\", \"username\", \"bio\", \"image\", \"token\");",
+              "});",
+              "",
+              "pm.test(\"User token is present and is a non-empty string\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.token).to.be.a(\"string\").and.to.have.length.above(0);",
+              "});",
+              "",
+              "pm.test(\"User email is a valid email format\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+              "});",
+              "",
+              "pm.test(\"User id is a positive integer\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.id).to.be.a(\"number\").and.to.be.above(0);",
+              "    pm.expect(Number.isInteger(responseData.user.id)).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://conduit-api.bondaracademy.com/api/user",
+          "protocol": "https",
+          "host": [
+            "conduit-api",
+            "bondaracademy",
+            "com"
+          ],
+          "path": [
+            "api",
+            "user"
+          ]
+        },
+        "description": "## Get Current User\n\nRetrieves the profile of the currently authenticated user. This request uses the Bearer token stored in `{{user_token}}`, which is set by the **User Login** request.\n\n**Endpoint:** `GET /api/user`\n\n**Authentication:** Bearer token via `{{user_token}}`\n\n### What is tested\n\n| Test | Description |\n| --- | --- |\n| Status code: 200 - User data valid | Asserts the API returns HTTP 200, confirming the token is valid and the user data was retrieved successfully. |\n| Response contains valid user data | Asserts the response body contains a `user` object and validates specific field values: `email` equals `\"banetest@gmail.com\"`, `username` equals `\"BaneTest\"`, and `id` equals `59649`. |\n\n### Notes\n\n- This request **depends on User Login** having run first to populate `{{user_token}}`.\n    \n- If the token is missing or expired, the API will return a 401 error instead."
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{user_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}
