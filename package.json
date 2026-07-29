@@ -1,0 +1,20 @@
+{
+  "name": "conduit-api-tests",
+  "version": "1.0.0",
+  "description": "Automated API tests for Conduit using Postman and Newman",
+  "main": "index.js",
+  "scripts": {
+    "test:local": "for file in tests/collections/*.json; do newman run \"$file\" || exit 1; done",
+    "test:report": "for file in tests/collections/*.json; do name=$(basename \"$file\" .json); newman run \"$file\" -r cli,htmlextra --reporter-htmlextra-export \"./reports/${name}-report.html\" || exit 1; done"
+  },
+  "keywords": [
+    "postman",
+    "newman",
+    "qa",
+    "automation"
+  ],
+  "dependencies": {
+    "newman": "^6.2.2",
+    "newman-reporter-htmlextra": "^1.22.5"
+  }
+}

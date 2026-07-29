@@ -141,3 +141,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Postman / Newman test reports
+reports/
+
+# Remove .DS_Store
+.DS_Store
+.DS_Store
