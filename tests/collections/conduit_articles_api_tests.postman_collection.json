@@ -638,6 +638,192 @@
       "response": []
     },
     {
+      "name": "Commented Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 Comment added', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "",
+              "pm.test('Comment was added', function () {",
+              "    pm.expect(jsonData.comment.body).to.eql(pm.collectionVariables.get('article_comment'));",
+              "});",
+              "",
+              "// save comment id from response",
+              "pm.collectionVariables.set('comment_id', jsonData.comment.id);",
+              "",
+              "console.log('Comment created, id saved as:', jsonData.comment.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set('article_comment', 'Testing comments on articles.');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"comment\": {\n        \"body\": \"{{article_comment}}\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{article_slug_from_create_new_article}}/comments",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{article_slug_from_create_new_article}}",
+            "comments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get all Comments for the Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 Getting all comments', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "",
+              "pm.test(\"Returned comments list\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData[\"comments\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{article_slug_from_create_new_article}}/comments",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{article_slug_from_create_new_article}}",
+            "comments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Comment for an Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 Comment deleted successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{article_slug_from_create_new_article}}/comments/{{comment_id}}",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{article_slug_from_create_new_article}}",
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Delete Article",
       "event": [
         {
@@ -737,6 +923,14 @@
     },
     {
       "key": "article_updated_description",
+      "value": ""
+    },
+    {
+      "key": "article_comment",
+      "value": ""
+    },
+    {
+      "key": "comment_id",
       "value": ""
     }
   ]
