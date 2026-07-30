@@ -24,7 +24,35 @@
               "    // save token",
               "    pm.environment.set(\"user_token\", responseData.user.token);",
               "});",
-              ""
+              "",
+              "pm.test(\"Response time is acceptable\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Content-Type header is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "pm.test(\"Response body has correct user object structure\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"user\");",
+              "    pm.expect(responseData.user).to.have.all.keys(\"email\", \"username\", \"bio\", \"image\", \"token\");",
+              "});",
+              "",
+              "pm.test(\"User email matches the login email\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.email).to.equal(\"banetest@gmail.com\");",
+              "});",
+              "",
+              "pm.test(\"Token is a non-empty string\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.token).to.be.a(\"string\").and.to.have.length.above(0);",
+              "});",
+              "",
+              "pm.test(\"Username is a non-empty string\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.username).to.be.a(\"string\").and.to.have.length.above(0);",
+              "});"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -45,15 +73,11 @@
           }
         },
         "url": {
-          "raw": "https://conduit-api.bondaracademy.com/api/users/login",
-          "protocol": "https",
+          "raw": "{{conduit_base_url}}/users/login",
           "host": [
-            "conduit-api",
-            "bondaracademy",
-            "com"
+            "{{conduit_base_url}}"
           ],
           "path": [
-            "api",
             "users",
             "login"
           ]
@@ -215,6 +239,355 @@
           ]
         },
         "description": "## User Login - Invalid Password Input Data\n\nVerifies that the Conduit API correctly rejects a login attempt when the password is incorrect.\n\n**Endpoint:** `POST /api/users/login`\n\n### Request Body\n\n```json\n{\n  \"user\": {\n    \"email\": \"banetest@gmail.com\",\n    \"password\": \"x\"\n  }\n}\n```\n\n### What is tested\n\n| Test | Description |\n|------|-------------|\n| Status code: 403 - Login Error | Asserts the API returns HTTP 403, indicating the credentials are rejected. |\n| Response body contains error message | Asserts the response body contains `{ \"errors\": { \"email or password\": [\"is invalid\"] } }`, confirming the API returns a consistent error regardless of which field is wrong. |\n\n### Notes\n- This is a **negative test**. The password value `\"x\"` is intentionally incorrect.\n- The API intentionally uses a generic `\"email or password\": [\"is invalid\"]` error message for both invalid email and invalid password cases, which is a security best practice to prevent user enumeration."
+      },
+      "response": []
+    },
+    {
+      "name": "Register New user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 201 - Register New user Success\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response have user token\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.token).to.not.be.undefined;",
+              "    // save token",
+              "    pm.environment.set(\"new_user_token\", responseData.user.token);",
+              "});",
+              "",
+              "pm.test(\"Response time is acceptable\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const stamp = Date.now().toString(36);",
+              "pm.environment.set('new_user_email', `tom+${stamp}@test.com`);",
+              "pm.environment.set('new_user_username', `Tom ${stamp}`);",
+              "pm.environment.set('new_user_password', 'Test123!');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"{{new_user_email}}\",\n        \"password\": \"{{new_user_password}}\",\n        \"username\": \"{{new_user_username}}\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/users",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register New user - Invalid username",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const stamp = Date.now().toString(36);",
+              "pm.environment.set('new_user_email', `tom+${stamp}@test.com`);",
+              "pm.environment.set('new_user_username', `Tom ${stamp}`);",
+              "pm.environment.set('new_user_password', 'Test123!');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 422 - Register New user Failed\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Response body has errors property\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"errors\");",
+              "});",
+              "",
+              "pm.test(\"Response does not contain a user token\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.not.have.property(\"user\");",
+              "});",
+              "",
+              "pm.test(\"Error message is an array with at least one item\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.errors[\"username\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"{{new_user_email}}\",\n        \"password\": \"{{new_user_password}}\",\n        \"username\": \"x\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/users",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register New user - Invalid email",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const stamp = Date.now().toString(36);",
+              "pm.environment.set('new_user_email', `tom+${stamp}@test.com`);",
+              "pm.environment.set('new_user_username', `Tom ${stamp}`);",
+              "pm.environment.set('new_user_password', 'Test123!');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 422 - Register New user Failed\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Response body has errors property\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"errors\");",
+              "});",
+              "",
+              "pm.test(\"Response does not contain a user token\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.not.have.property(\"user\");",
+              "});",
+              "",
+              "pm.test(\"Error message is an array with at least one item\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.errors[\"email\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"x\",\n        \"password\": \"{{new_user_password}}\",\n        \"username\": \"{{new_user_username}}\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/users",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register New user - Invalid password",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const stamp = Date.now().toString(36);",
+              "pm.environment.set('new_user_email', `tom+${stamp}@test.com`);",
+              "pm.environment.set('new_user_username', `Tom ${stamp}`);",
+              "pm.environment.set('new_user_password', 'Test123!');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 422 - Register New user Failed\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Response body has errors property\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"errors\");",
+              "});",
+              "",
+              "pm.test(\"Response does not contain a user token\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.not.have.property(\"user\");",
+              "});",
+              "",
+              "pm.test(\"Error message is an array with at least one item\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.errors[\"password\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"{{new_user_email}}\",\n        \"password\": \"x\",\n        \"username\": \"{{new_user_username}}\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/users",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register New user - Invalid all credentials",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const stamp = Date.now().toString(36);",
+              "pm.environment.set('new_user_email', `tom+${stamp}@test.com`);",
+              "pm.environment.set('new_user_username', `Tom ${stamp}`);",
+              "pm.environment.set('new_user_password', 'Test123!');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 422 - Register New user Failed\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Response body has errors property\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"errors\");",
+              "});",
+              "",
+              "pm.test(\"Response does not contain a user token\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.not.have.property(\"user\");",
+              "});",
+              "",
+              "pm.test(\"Error message is an array with three items\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.errors[\"email\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "    pm.expect(responseData.errors[\"password\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "    pm.expect(responseData.errors[\"username\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"email\": \"x\",\n        \"password\": \"x\",\n        \"username\": \"x\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/users",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
       },
       "response": []
     }
