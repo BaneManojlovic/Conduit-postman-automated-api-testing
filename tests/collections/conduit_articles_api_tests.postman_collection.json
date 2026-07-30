@@ -326,6 +326,370 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "Get Single Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test('Returned article by slug number', function () {",
+              "    const responseData = pm.response.json();",
+              "     pm.expect(responseData.article.slug).to.eql(pm.environment.get(\"test_exisitng_article_slug\"));",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{test_exisitng_article_slug}}",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{test_exisitng_article_slug}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Favorite Single Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 - Article is made Favorite\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test('Returned article by slug number', function () {",
+              "    const responseData = pm.response.json();",
+              "    ",
+              "    pm.expect(responseData.article.favorited).to.eql(true);",
+              "});",
+              "",
+              " ",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{test_exisitng_article_slug}}/favorite",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{test_exisitng_article_slug}}",
+            "favorite"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unfavorite Single Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 - Article is made Favorite\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test('Returned article by slug number', function () {",
+              "    const responseData = pm.response.json();",
+              "    ",
+              "    pm.expect(responseData.article.favorited).to.eql(false);",
+              "});",
+              "",
+              " ",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "packages": {},
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{test_exisitng_article_slug}}/favorite",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{test_exisitng_article_slug}}",
+            "favorite"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Article - Invalid slug",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Non-existent slug returns 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Response body has errors property\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.have.property(\"errors\");",
+              "});",
+              "",
+              "pm.test(\"Error message is an array with at least one item\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.errors[\"article\"]).to.be.an(\"array\").and.to.have.length.above(0);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{clean_article_slug}}",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{clean_article_slug}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create new Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "",
+              "pm.test('Article title matches what was sent', function () {",
+              "    pm.expect(jsonData.article.title).to.eql(pm.collectionVariables.get('article_title'));",
+              "});",
+              "",
+              "pm.test('Slug is returned and saved for later requests', function () {",
+              "    pm.expect(jsonData.article.slug).to.be.a('string').and.not.empty;",
+              "    pm.collectionVariables.set('article_slug_from_create_new_article', jsonData.article.slug);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const stamp = Date.now().toString(36);",
+              "pm.collectionVariables.set('article_title', `Test Article ${stamp}`);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"article\": {\n        \"title\": \"{{article_title}}\",\n        \"description\": \"Testing\",\n        \"body\": \"Something\",\n        \"tagList\": []\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/articles",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Edit - Update Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 Article Updated', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "",
+              "pm.test('Article title matches what was sent', function () {",
+              "    pm.expect(jsonData.article.title).to.eql(pm.collectionVariables.get('article_title'));",
+              "});",
+              "",
+              "pm.test('Slug for the existing article is returned', function () {",
+              "    pm.expect(jsonData.article.slug).to.be.a('string').and.not.empty;",
+              "    pm.expect(jsonData.article.slug).to.eql(pm.collectionVariables.get('article_slug_from_create_new_article'));",
+              "});",
+              "",
+              "pm.test('Description was updated to the new value', function () {",
+              "    pm.expect(jsonData.article.description).to.eql(pm.collectionVariables.get('article_updated_description'));",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set('article_updated_description', 'Testing - editing');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"article\": {\n        \"title\": \"{{article_title}}\",\n        \"description\": \"{{article_updated_description}}\",\n        \"body\": \"Something\",\n        \"tagList\": []\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{article_slug_from_create_new_article}}",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{article_slug_from_create_new_article}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Article",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 204 Article Deleted - No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/articles/{{article_slug_from_create_new_article}}",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "articles",
+            "{{article_slug_from_create_new_article}}"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "auth": {
@@ -360,6 +724,20 @@
           ""
         ]
       }
+    }
+  ],
+  "variable": [
+    {
+      "key": "article_title",
+      "value": ""
+    },
+    {
+      "key": "article_slug_from_create_new_article",
+      "value": ""
+    },
+    {
+      "key": "article_updated_description",
+      "value": ""
     }
   ]
 }
