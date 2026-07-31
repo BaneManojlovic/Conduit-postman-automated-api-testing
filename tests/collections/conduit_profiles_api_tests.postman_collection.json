@@ -22,6 +22,7 @@
               "    pm.expect(responseData.user.token).to.not.be.undefined;",
               "    // save token",
               "    pm.environment.set(\"user_token\", responseData.user.token);",
+              "    pm.environment.set(\"user_username\", responseData.user.username);",
               "});",
               ""
             ],
@@ -44,15 +45,11 @@
           }
         },
         "url": {
-          "raw": "https://conduit-api.bondaracademy.com/api/users/login",
-          "protocol": "https",
+          "raw": "{{conduit_base_url}}/users/login",
           "host": [
-            "conduit-api",
-            "bondaracademy",
-            "com"
+            "{{conduit_base_url}}"
           ],
           "path": [
-            "api",
             "users",
             "login"
           ]
@@ -212,6 +209,321 @@
           ]
         },
         "description": "## Get Current User\n\nRetrieves the profile of the currently authenticated user. This request uses the Bearer token stored in `{{user_token}}`, which is set by the **User Login** request.\n\n**Endpoint:** `GET /api/user`\n\n**Authentication:** Bearer token via `{{user_token}}`\n\n### What is tested\n\n| Test | Description |\n| --- | --- |\n| Status code: 200 - User data valid | Asserts the API returns HTTP 200, confirming the token is valid and the user data was retrieved successfully. |\n| Response contains valid user data | Asserts the response body contains a `user` object and validates specific field values: `email` equals `\"banetest@gmail.com\"`, `username` equals `\"BaneTest\"`, and `id` equals `59649`. |\n\n### Notes\n\n- This request **depends on User Login** having run first to populate `{{user_token}}`.\n    \n- If the token is missing or expired, the API will return a 401 error instead."
+      },
+      "response": []
+    },
+    {
+      "name": "Update Current User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Provera uspešnog status koda",
+              "pm.test(\"Status code: 200 - User data valid\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Provera strukture i ispravnosti podataka u odgovoru",
+              "pm.test(\"Response contains valid user data\", function () {",
+              "    const responseData = pm.response.json();",
+              "    ",
+              "    // Proveravamo da li struktura sadrži 'user' objekat",
+              "    pm.expect(responseData).to.have.property('user');",
+              "    ",
+              "    // Validacija konkretnih vrednosti koje ste naveli",
+              "    pm.expect(responseData.user.email).to.equal(\"banetest@gmail.com\");",
+              "    pm.expect(responseData.user.username).to.equal(\"BaneTest\");",
+              "    pm.expect(responseData.user.id).to.equal(59649);",
+              "});",
+              "",
+              "pm.test(\"Response time is acceptable\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Content-Type header is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "pm.test(\"User object contains all expected fields\", function () {",
+              "    const responseData = pm.response.json();",
+              "    console.log(responseData.user)",
+              "    pm.expect(responseData.user).to.have.all.keys(\"id\", \"email\", \"username\", \"bio\", \"image\", \"token\");",
+              "});",
+              "",
+              "pm.test(\"User token is present and is a non-empty string\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.token).to.be.a(\"string\").and.to.have.length.above(0);",
+              "});",
+              "",
+              "pm.test(\"User email is a valid email format\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+              "});",
+              "",
+              "pm.test(\"User id is a positive integer\", function () {",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.user.id).to.be.a(\"number\").and.to.be.above(0);",
+              "    pm.expect(Number.isInteger(responseData.user.id)).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user\": {\n        \"image\": \"\",\n        \"username\": \"\",\n        \"bio\": \"I am updating this user profile description\",\n        \"email\": \"\",\n        \"password\": \"\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/user",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "user"
+          ]
+        },
+        "description": "## Get Current User\n\nRetrieves the profile of the currently authenticated user. This request uses the Bearer token stored in `{{user_token}}`, which is set by the **User Login** request.\n\n**Endpoint:** `GET /api/user`\n\n**Authentication:** Bearer token via `{{user_token}}`\n\n### What is tested\n\n| Test | Description |\n| --- | --- |\n| Status code: 200 - User data valid | Asserts the API returns HTTP 200, confirming the token is valid and the user data was retrieved successfully. |\n| Response contains valid user data | Asserts the response body contains a `user` object and validates specific field values: `email` equals `\"banetest@gmail.com\"`, `username` equals `\"BaneTest\"`, and `id` equals `59649`. |\n\n### Notes\n\n- This request **depends on User Login** having run first to populate `{{user_token}}`.\n    \n- If the token is missing or expired, the API will return a 401 error instead."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Profile by Username",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 200 - Get user Profile\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test('Profile matches the registered user', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.profile.username).to.eql(pm.environment.get('user_username'));",
+              "    pm.expect(jsonData.profile).to.have.property('bio');",
+              "    pm.expect(jsonData.profile).to.have.property('image');",
+              "    pm.expect(jsonData.profile).to.have.property('following');",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/profiles/:username",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "profiles",
+            ":username"
+          ],
+          "variable": [
+            {
+              "key": "username",
+              "value": "BaneTest"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Follow user Profile by Username",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 200 - Get user Profile\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test('Following user profile', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.profile.username).to.eql(pm.environment.get('user_username'));",
+              "    pm.expect(jsonData.profile).to.have.property('bio');",
+              "    pm.expect(jsonData.profile).to.have.property('image');",
+              "    pm.expect(jsonData.profile.following).to.eql(true);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/profiles/:username/follow",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "profiles",
+            ":username",
+            "follow"
+          ],
+          "variable": [
+            {
+              "key": "username",
+              "value": "BaneTest"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unfollow user Profile by Username",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code: 200 - Get user Profile\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test('I unfollow user profile', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.profile.username).to.eql(pm.environment.get('user_username'));",
+              "    pm.expect(jsonData.profile).to.have.property('bio');",
+              "    pm.expect(jsonData.profile).to.have.property('image');",
+              "    pm.expect(jsonData.profile.following).to.eql(false);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/profiles/:username/follow",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "profiles",
+            ":username",
+            "follow"
+          ],
+          "variable": [
+            {
+              "key": "username",
+              "value": "BaneTest"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Profile by Invalid Username",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Profile not found returns 404 with empty body\", function () {",
+              "    pm.response.to.have.status(404);",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData).to.eql({});",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{conduit_base_url}}/profiles/:username",
+          "host": [
+            "{{conduit_base_url}}"
+          ],
+          "path": [
+            "profiles",
+            ":username"
+          ],
+          "variable": [
+            {
+              "key": "username",
+              "value": "InvalidUsername"
+            }
+          ]
+        }
       },
       "response": []
     }

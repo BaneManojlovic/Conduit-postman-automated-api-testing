@@ -4,8 +4,8 @@
   "description": "Automated API tests for Conduit using Postman and Newman",
   "main": "index.js",
   "scripts": {
-    "test:local": "for file in tests/collections/*.json; do newman run \"$file\" || exit 1; done",
-    "test:report": "for file in tests/collections/*.json; do name=$(basename \"$file\" .json); newman run \"$file\" -r cli,htmlextra --reporter-htmlextra-export \"./reports/${name}-report.html\" || exit 1; done"
+    "test:local": "for file in tests/collections/*.json; do newman run \"$file\" -e tests/environments/test.postman_environment.json || exit 1; done",
+    "test:report": "for file in tests/collections/*.json; do name=$(basename \"$file\" .json); newman run \"$file\" -e tests/environments/test.postman_environment.json -r cli,htmlextra --reporter-htmlextra-export \"./reports/${name}-report.html\" || exit 1; done"
   },
   "keywords": [
     "postman",
